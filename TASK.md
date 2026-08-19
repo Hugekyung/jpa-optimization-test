@@ -55,11 +55,11 @@
 
 ### 5. N+1 문제 재현
 
-- [ ] Order 목록을 먼저 조회
-- [ ] 각 Order의 User 이름에 접근해 추가 SELECT 발생 확인
-- [ ] 각 Order의 OrderItem에 접근해 추가 SELECT 발생 확인
-- [ ] 부모 조회 1회와 연관 조회 N회가 발생하는 구조를 설명
-- [ ] Persistence Context의 1차 캐시 때문에 실제 쿼리 수가 달라질 수 있음을 확인
+- [x] Order 목록을 먼저 조회
+- [x] 각 Order의 User 이름에 접근해 추가 SELECT 발생 확인
+- [x] 각 Order의 OrderItem에 접근해 추가 SELECT 발생 확인
+- [x] 부모 조회 1회와 연관 조회 N회가 발생하는 구조를 설명
+- [x] Persistence Context의 1차 캐시 때문에 실제 쿼리 수가 달라질 수 있음을 확인
 
 ### 6. Fetch Join 적용
 

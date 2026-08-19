@@ -58,14 +58,15 @@ class QueryComparisonTest {
         statistics.clear();
         SqlQueryTracker.clear();
 
+        long startedAt = System.nanoTime();
         List<Order> orders = query.get();
 
         return new QueryMeasurement(
             strategy,
             orders.size(),
             statistics.getQueryExecutionCount(),
+            System.nanoTime() - startedAt,
             SqlQueryTracker.snapshot()
         );
     }
 }
-

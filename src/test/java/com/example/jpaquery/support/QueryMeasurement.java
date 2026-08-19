@@ -6,6 +6,7 @@ public record QueryMeasurement(
     String strategy,
     int resultCount,
     long queryCount,
+    long elapsedNanos,
     List<String> sqlStatements
 ) {
 
@@ -28,4 +29,3 @@ public record QueryMeasurement(
             .orElse("-");
     }
 }
-
