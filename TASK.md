@@ -63,11 +63,13 @@
 
 ### 6. Fetch Join 적용
 
-- [ ] Order와 User를 Fetch Join으로 조회하는 Repository 메서드 구현
-- [ ] `GET /api/orders/fetch-join` 구현
-- [ ] JOIN으로 N+1이 줄어드는지 SQL 로그로 확인
-- [ ] Collection Fetch Join과 `distinct` 동작 확인
-- [ ] OneToMany Fetch Join의 중복 Row와 Pagination 주의점 기록
+- [x] Order와 User를 Fetch Join으로 조회하는 Repository 메서드 구현
+- [x] `GET /api/orders/fetch-join` 구현
+- [x] JOIN으로 N+1이 줄어드는지 SQL 로그로 확인
+- [x] Collection Fetch Join과 `distinct` 동작 확인
+- [x] OneToMany Fetch Join의 중복 Row와 Pagination 주의점 기록
+
+> Collection Fetch Join은 Collection 요소 수만큼 SQL Row가 늘어날 수 있으며, `distinct`로 Entity 결과의 중복을 제거한다. Collection Fetch Join과 Pagination을 함께 사용하면 joined Row 기준 페이징으로 결과가 왜곡되거나 메모리 페이징이 발생할 수 있으므로 주의한다.
 
 ### 7. Batch Fetch 적용
 
