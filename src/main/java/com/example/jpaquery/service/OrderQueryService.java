@@ -26,7 +26,26 @@ public class OrderQueryService {
         return orderRepository.findAllWithItems();
     }
 
+    @Transactional(readOnly = true)
+    public List<Order> findOrdersWithNPlusOne() {
+        return findOrdersWithAssociationAccess();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Order> findOrdersWithBatchFetch() {
+        return findOrdersWithAssociationAccess();
+    }
+
     public List<OrderSummaryProjection> findOrderSummaries() {
         return orderRepository.findOrderSummaries();
+    }
+
+    private List<Order> findOrdersWithAssociationAccess() {
+        List<Order> orders = orderRepository.findAll();
+        orders.forEach(order -> {
+            order.getUser().getName();
+            order.getItems().size();
+        });
+        return orders;
     }
 }

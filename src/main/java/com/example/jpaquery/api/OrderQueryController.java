@@ -26,6 +26,20 @@ public class OrderQueryController {
             .toList();
     }
 
+    @GetMapping("/n-plus-one")
+    public List<OrderSummaryResponse> findOrdersWithNPlusOne() {
+        return orderQueryService.findOrdersWithNPlusOne().stream()
+            .map(OrderSummaryResponse::from)
+            .toList();
+    }
+
+    @GetMapping("/batch-fetch")
+    public List<OrderSummaryResponse> findOrdersWithBatchFetch() {
+        return orderQueryService.findOrdersWithBatchFetch().stream()
+            .map(OrderSummaryResponse::from)
+            .toList();
+    }
+
     @GetMapping("/projection")
     public List<OrderSummaryResponse> findOrderSummaries() {
         return orderQueryService.findOrderSummaries().stream()

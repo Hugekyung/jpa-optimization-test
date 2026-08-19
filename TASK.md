@@ -92,11 +92,13 @@
 
 ### 9. 조회 전략 비교 API 구성
 
-- [ ] `GET /api/orders/n-plus-one` 구현
-- [ ] `GET /api/orders/fetch-join` 구현
-- [ ] `GET /api/orders/batch-fetch` 구현
-- [ ] `GET /api/orders/projection` 구현
-- [ ] 가능한 한 동일한 응답 형태로 네 방식 비교
+- [x] `GET /api/orders/n-plus-one` 구현
+- [x] `GET /api/orders/fetch-join` 구현
+- [x] `GET /api/orders/batch-fetch` 구현
+- [x] `GET /api/orders/projection` 구현
+- [x] 가능한 한 동일한 응답 형태로 네 방식 비교
+
+> 네 API는 동일한 주문 요약 응답(`orderId`, `userName`, `status`)을 반환해 조회 전략별 SQL 차이와 응답 결과를 같은 기준으로 비교할 수 있다.
 
 ### 10. 테스트와 결과 기록
 
