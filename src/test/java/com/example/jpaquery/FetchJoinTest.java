@@ -3,6 +3,8 @@ package com.example.jpaquery;
 import com.example.jpaquery.api.dto.OrderFetchJoinResponse;
 import com.example.jpaquery.config.SqlQueryTracker;
 import com.example.jpaquery.domain.Order;
+import com.example.jpaquery.domain.OrderStatus;
+import com.example.jpaquery.domain.User;
 import com.example.jpaquery.repository.OrderRepository;
 import com.example.jpaquery.support.QueryComparisonTable;
 import com.example.jpaquery.support.QueryMeasurement;
@@ -21,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -127,6 +130,30 @@ class FetchJoinTest {
     }
 
     @Test
+    @DisplayName("Collection Fetch Join은 Item이 없는 Order도 조회한다")
+    void collectionFetchJoinIncludesOrderWithoutItems() {
+        User user = new User("User without items");
+        Order orderWithoutItems = new Order(OrderStatus.CANCELLED, LocalDateTime.of(2026, 2, 1, 0, 0));
+        user.addOrder(orderWithoutItems);
+        entityManager.persist(user);
+        entityManager.persist(orderWithoutItems);
+        entityManager.flush();
+        entityManager.clear();
+
+        // When: OrderItem이 없는 Order를 Collection Fetch Join으로 조회한다.
+        List<Order> orders = orderRepository.findAllWithItems();
+
+        // Then: LEFT JOIN은 연관 데이터가 없어도 Order를 유지해야 한다.
+        // Result (assert): 새 Order가 조회되고 빈 Collection으로 초기화되는지 확인한다.
+        Order fetchedOrder = orders.stream()
+            .filter(order -> order.getId().equals(orderWithoutItems.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertTrue(fetchedOrder.getItems().isEmpty());
+        assertTrue(entityManagerFactory.getPersistenceUnitUtil().isLoaded(fetchedOrder, "items"));
+    }
+
+    @Test
     @DisplayName("Fetch Join 조회 API가 주문 목록을 반환한다")
     void fetchJoinApiReturnsOrders() throws Exception {
         mockMvc.perform(get("/api/orders/fetch-join"))
@@ -164,4 +191,3 @@ class FetchJoinTest {
             .count();
     }
 }
-
