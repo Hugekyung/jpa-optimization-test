@@ -1,0 +1,76 @@
+# JPA Query Optimization Test
+
+JPA 연관관계 조회 전략에 따른 SQL 실행 차이를 확인하는 실습 프로젝트입니다.
+
+## 테스트 환경
+
+- Java 21
+- Spring Boot 3.5.5
+- Spring Data JPA / Hibernate
+- H2
+- 테스트 데이터: User 10명, Order 100개, OrderItem 500개
+- 동일 조회 조건: `Order` 전체 조회, `id ASC` 정렬, Order 100건 응답
+
+## 조회 전략 비교
+
+`QueryStrategyComparisonTest`에서 같은 조건과 응답 범위로 네 가지 방식을 비교합니다.
+
+| 방식 | 결과 건수 | SQL 횟수 | 실행 시간(ns)* | SQL 특징 | 장점 | 주의점 |
+|---|---:|---:|---:|---|---|---|
+| N+1 | 100 | 111 | 9,877,959 | Order 1회 + User/OrderItem 반복 SELECT | 동작이 단순하고 기본 LAZY 구조 유지 | 연관관계 접근마다 추가 SQL 발생 |
+| Fetch Join | 100 | 1 | 1,910,417 | `JOIN`으로 User 함께 조회 | N+1을 한 번의 SQL로 줄임 | Collection Fetch Join의 중복 Row와 Pagination 주의 |
+| Batch Fetch | 100 | 12 | 7,383,709 | 연관관계를 `IN (...)`으로 묶음 | LAZY 구조를 유지하면서 SQL 감소 | 여러 SELECT는 남아 있고 Batch 크기 조정 필요 |
+| DTO Projection | 100 | 1 | 1,666,334 | 필요한 컬럼만 `SELECT` | Entity 생성 및 불필요한 컬럼 조회 감소 | Entity 변경 감지나 연관관계 기능 사용 불가 |
+
+\* 실행 시간은 동일 환경에서 1회 실행한 측정 예시이며, 실행 환경에 따라 달라질 수 있습니다.
+
+### SQL 형태
+
+```text
+N+1
+  select ... from orders order by id
+  select ... from users where id = ?
+  select ... from order_items where order_id = ?
+  ...
+
+Fetch Join
+  select ...
+  from orders
+  join users on ...
+  order by id
+
+Batch Fetch
+  select ... from orders order by id
+  select ... from users where id in (?, ...)
+  select ... from order_items where order_id in (?, ...)
+
+DTO Projection
+  select order.id, user.name, order.status
+  from orders
+  join users on ...
+  order by id
+```
+
+## API
+
+네 API는 동일한 주문 요약 응답을 반환합니다.
+
+```json
+{
+  "orderId": 1,
+  "userName": "User 1",
+  "status": "PENDING"
+}
+```
+
+- `GET /api/orders/n-plus-one`
+- `GET /api/orders/fetch-join`
+- `GET /api/orders/batch-fetch`
+- `GET /api/orders/projection`
+
+## 선택 기준
+
+- 연관관계가 항상 필요하고 To-One 관계라면 Fetch Join 고려
+- Collection과 Pagination 제약을 피하면서 LAZY를 유지하려면 Batch Fetch 고려
+- 조회 전용 응답이고 필요한 컬럼이 제한적이면 DTO Projection 고려
+- 연관관계 접근이 반복되면 기본 LAZY 조회에서 N+1이 발생할 수 있으므로 SQL 로그로 확인
