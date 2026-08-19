@@ -7,6 +7,18 @@ spring:
     username: sa
     password:
   jpa:
+    show-sql: true
     hibernate:
       ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        generate_statistics: true
+        session_factory:
+          statement_inspector: com.example.jpaquery.config.SqlQueryTracker
     open-in-view: false
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace

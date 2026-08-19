@@ -35,9 +35,17 @@
 
 ### 3. SQL 로그 설정
 
-- [ ] Hibernate SQL 로그 활성화
-- [ ] 바인딩 파라미터와 포맷팅된 SQL 확인
+- [x] Hibernate SQL 로그 활성화
+- [x] 바인딩 파라미터와 포맷팅된 SQL 확인
 - [ ] 각 실습에서 SQL 횟수, JOIN 여부, `IN (...)` 발생 여부 기록
+
+#### Task 3 추가 작업
+
+- [x] Hibernate Statistics 활성화
+- [x] `StatementInspector` 기반 SQL 추적기 추가
+- [x] 조회 결과 건수, Query 횟수, SQL 횟수, JOIN 여부, `IN (...)` 여부를 수집하는 테스트 도우미 추가
+- [x] 수집 결과를 Markdown 표와 SQL 목록으로 출력하는 테스트 코드 추가
+- [x] 동일 조건의 주문 조회 결과와 수집 결과 출력 검증
 
 ### 4. LAZY Loading 확인
 
