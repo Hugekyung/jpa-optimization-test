@@ -2,6 +2,7 @@ package com.example.jpaquery.service;
 
 import com.example.jpaquery.domain.Order;
 import com.example.jpaquery.repository.OrderRepository;
+import com.example.jpaquery.repository.projection.OrderSummaryProjection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,5 +25,8 @@ public class OrderQueryService {
     public List<Order> findOrdersWithItems() {
         return orderRepository.findAllWithItems();
     }
-}
 
+    public List<OrderSummaryProjection> findOrderSummaries() {
+        return orderRepository.findOrderSummaries();
+    }
+}

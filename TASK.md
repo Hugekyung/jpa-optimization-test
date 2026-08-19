@@ -82,11 +82,13 @@
 
 ### 8. DTO Projection 적용
 
-- [ ] `OrderSummaryResponse` DTO 구현
-- [ ] 필요한 컬럼만 조회하는 JPQL Constructor Expression 구현
-- [ ] `GET /api/orders/projection` 구현
-- [ ] Entity 조회와 DTO Projection의 SELECT 컬럼 차이 확인
-- [ ] 조회 전용 API에서 Projection이 유리한 이유 기록
+- [x] `OrderSummaryResponse` DTO 구현
+- [x] 필요한 컬럼만 조회하는 JPQL Constructor Expression 구현
+- [x] `GET /api/orders/projection` 구현
+- [x] Entity 조회와 DTO Projection의 SELECT 컬럼 차이 확인
+- [x] 조회 전용 API에서 Projection이 유리한 이유 기록
+
+> DTO Projection은 Entity 전체와 연관관계 관리가 필요 없는 조회 전용 API에서 필요한 컬럼만 반환한다. Entity Fetch Join은 `orders`와 `users`의 Entity 컬럼을 조회하지만, DTO Projection은 `order_id`, `user_name`, `status`만 조회해 전송 데이터와 Entity 생성 비용을 줄일 수 있다.
 
 ### 9. 조회 전략 비교 API 구성
 
