@@ -27,6 +27,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("조회 전략별 SQL 비교 검증")
 class QueryStrategyComparisonTest {
 
+    // DataInitializer 기준: User 10명, 사용자당 Order 10개, Batch Fetch 크기 10개.
+    private static final int SEEDED_USER_COUNT = 10;
+    private static final int ORDERS_PER_USER = 10;
+    private static final int EXPECTED_ORDER_COUNT = SEEDED_USER_COUNT * ORDERS_PER_USER;
+    private static final int BATCH_FETCH_SIZE = 10;
+    private static final int SINGLE_ORDER_QUERY_COUNT = 1;
+    private static final int EXPECTED_N_PLUS_ONE_SQL_COUNT =
+        SINGLE_ORDER_QUERY_COUNT + SEEDED_USER_COUNT + EXPECTED_ORDER_COUNT;
+    private static final int EXPECTED_BATCH_FETCH_SQL_COUNT =
+        SINGLE_ORDER_QUERY_COUNT
+            + Math.ceilDiv(SEEDED_USER_COUNT, BATCH_FETCH_SIZE)
+            + Math.ceilDiv(EXPECTED_ORDER_COUNT, BATCH_FETCH_SIZE);
+
     @Autowired
     private EntityManager entityManager;
 
@@ -65,16 +78,16 @@ class QueryStrategyComparisonTest {
         );
 
         // Result (assert): 같은 조회 조건에서 응답 데이터가 모두 일치하는지 확인한다.
-        assertEquals(100, nPlusOne.responses().size());
+        assertEquals(EXPECTED_ORDER_COUNT, nPlusOne.responses().size());
         assertEquals(nPlusOne.responses(), fetchJoin.responses());
         assertEquals(nPlusOne.responses(), batchFetch.responses());
         assertEquals(nPlusOne.responses(), projection.responses());
 
         // Result (assert): 전략별 SQL 횟수와 JOIN, IN 발생 여부를 확인한다.
-        assertEquals(111, nPlusOne.measurement().sqlStatements().size());
-        assertEquals(1, fetchJoin.measurement().sqlStatements().size());
-        assertEquals(12, batchFetch.measurement().sqlStatements().size());
-        assertEquals(1, projection.measurement().sqlStatements().size());
+        assertEquals(EXPECTED_N_PLUS_ONE_SQL_COUNT, nPlusOne.measurement().sqlStatements().size());
+        assertEquals(SINGLE_ORDER_QUERY_COUNT, fetchJoin.measurement().sqlStatements().size());
+        assertEquals(EXPECTED_BATCH_FETCH_SQL_COUNT, batchFetch.measurement().sqlStatements().size());
+        assertEquals(SINGLE_ORDER_QUERY_COUNT, projection.measurement().sqlStatements().size());
         assertTrue(fetchJoin.measurement().containsJoin());
         assertTrue(batchFetch.measurement().containsInClause());
 
