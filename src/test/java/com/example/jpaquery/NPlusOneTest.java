@@ -1,9 +1,9 @@
 package com.example.jpaquery;
 
-import com.example.jpaquery.config.SqlQueryTracker;
 import com.example.jpaquery.domain.Order;
 import com.example.jpaquery.support.QueryComparisonTable;
 import com.example.jpaquery.support.QueryMeasurement;
+import com.example.jpaquery.support.QueryTrackingSupport;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnit;
@@ -41,10 +41,10 @@ class NPlusOneTest {
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
 
         // When: 동일한 조건으로 Order 목록만 조회한다.
-        resetTracking(statistics);
+        QueryTrackingSupport.resetTracking(statistics);
         long orderOnlyStartedAt = System.nanoTime();
         List<Order> ordersWithoutAssociationAccess = findOrders();
-        QueryMeasurement orderOnly = snapshot(
+        QueryMeasurement orderOnly = QueryTrackingSupport.snapshot(
             "연관관계 미접근",
             ordersWithoutAssociationAccess.size(),
             statistics,
@@ -56,12 +56,12 @@ class NPlusOneTest {
         // Result (assert): 기준 결과 건수와 SQL 실행 횟수를 확인한다.
         assertEquals(100, ordersWithoutAssociationAccess.size());
         assertEquals(1, orderOnly.sqlStatements().size());
-        assertEquals(1, countSql(orderOnly.sqlStatements(), "from orders"));
+        assertEquals(1, QueryTrackingSupport.countSql(orderOnly.sqlStatements(), "from orders"));
 
         entityManager.clear();
 
         // When: 같은 조건으로 조회한 뒤 모든 Order의 User와 OrderItem에 접근한다.
-        resetTracking(statistics);
+        QueryTrackingSupport.resetTracking(statistics);
         long nPlusOneStartedAt = System.nanoTime();
         List<Order> ordersWithAssociationAccess = findOrders();
         List<String> userNames = ordersWithAssociationAccess.stream()
@@ -70,7 +70,7 @@ class NPlusOneTest {
         int totalItemCount = ordersWithAssociationAccess.stream()
             .mapToInt(order -> order.getItems().size())
             .sum();
-        QueryMeasurement nPlusOne = snapshot(
+        QueryMeasurement nPlusOne = QueryTrackingSupport.snapshot(
             "연관관계 전체 접근(N+1)",
             ordersWithAssociationAccess.size(),
             statistics,
@@ -84,9 +84,9 @@ class NPlusOneTest {
         assertEquals(500, totalItemCount);
         assertEquals(100, ordersWithAssociationAccess.size());
         assertEquals(111, nPlusOne.sqlStatements().size());
-        assertEquals(1, countSql(nPlusOne.sqlStatements(), "from orders"));
-        assertEquals(10, countSql(nPlusOne.sqlStatements(), "from users"));
-        assertEquals(100, countSql(nPlusOne.sqlStatements(), "from order_items"));
+        assertEquals(1, QueryTrackingSupport.countSql(nPlusOne.sqlStatements(), "from orders"));
+        assertEquals(10, QueryTrackingSupport.countSql(nPlusOne.sqlStatements(), "from users"));
+        assertEquals(100, QueryTrackingSupport.countSql(nPlusOne.sqlStatements(), "from order_items"));
 
         QueryComparisonTable.print(List.of(orderOnly, nPlusOne));
         assertTrue(nPlusOne.sqlSummary().contains("from users"));
@@ -101,32 +101,5 @@ class NPlusOneTest {
         return orders.stream()
             .map(Order::getId)
             .toList();
-    }
-
-    private void resetTracking(Statistics statistics) {
-        statistics.clear();
-        SqlQueryTracker.clear();
-    }
-
-    private QueryMeasurement snapshot(
-        String strategy,
-        int resultCount,
-        Statistics statistics,
-        long startedAt
-    ) {
-        return new QueryMeasurement(
-            strategy,
-            resultCount,
-            statistics.getQueryExecutionCount(),
-            System.nanoTime() - startedAt,
-            SqlQueryTracker.snapshot()
-        );
-    }
-
-    private long countSql(List<String> sqlStatements, String fragment) {
-        return sqlStatements.stream()
-            .map(String::toLowerCase)
-            .filter(sql -> sql.contains(fragment))
-            .count();
     }
 }

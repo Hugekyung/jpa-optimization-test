@@ -1,9 +1,9 @@
 package com.example.jpaquery;
 
-import com.example.jpaquery.config.SqlQueryTracker;
 import com.example.jpaquery.domain.Order;
 import com.example.jpaquery.support.QueryComparisonTable;
 import com.example.jpaquery.support.QueryMeasurement;
+import com.example.jpaquery.support.QueryTrackingSupport;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnit;
@@ -39,10 +39,10 @@ class BatchFetchTest {
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
 
         // When: 동일 조건으로 Order 목록만 조회한다.
-        resetTracking(statistics);
+        QueryTrackingSupport.resetTracking(statistics);
         long orderOnlyStartedAt = System.nanoTime();
         List<Order> ordersWithoutAssociationAccess = findOrders();
-        QueryMeasurement orderOnly = snapshot(
+        QueryMeasurement orderOnly = QueryTrackingSupport.snapshot(
             "Batch Fetch - 연관관계 미접근",
             ordersWithoutAssociationAccess.size(),
             statistics,
@@ -57,7 +57,7 @@ class BatchFetchTest {
         entityManager.clear();
 
         // When: 같은 조건으로 조회한 뒤 모든 User와 OrderItem에 접근한다.
-        resetTracking(statistics);
+        QueryTrackingSupport.resetTracking(statistics);
         long batchStartedAt = System.nanoTime();
         List<Order> ordersWithAssociationAccess = findOrders();
         List<String> userNames = ordersWithAssociationAccess.stream()
@@ -66,7 +66,7 @@ class BatchFetchTest {
         int totalItemCount = ordersWithAssociationAccess.stream()
             .mapToInt(order -> order.getItems().size())
             .sum();
-        QueryMeasurement batchFetch = snapshot(
+        QueryMeasurement batchFetch = QueryTrackingSupport.snapshot(
             "Batch Fetch - 연관관계 전체 접근",
             ordersWithAssociationAccess.size(),
             statistics,
@@ -79,9 +79,9 @@ class BatchFetchTest {
         assertEquals(500, totalItemCount);
         assertEquals(100, ordersWithAssociationAccess.size());
         assertEquals(12, batchFetch.sqlStatements().size());
-        assertEquals(1, countSql(batchFetch.sqlStatements(), "from orders"));
-        assertEquals(1, countSql(batchFetch.sqlStatements(), "from users"));
-        assertEquals(10, countSql(batchFetch.sqlStatements(), "from order_items"));
+        assertEquals(1, QueryTrackingSupport.countSql(batchFetch.sqlStatements(), "from orders"));
+        assertEquals(1, QueryTrackingSupport.countSql(batchFetch.sqlStatements(), "from users"));
+        assertEquals(10, QueryTrackingSupport.countSql(batchFetch.sqlStatements(), "from order_items"));
         assertTrue(batchFetch.containsInClause());
 
         QueryComparisonTable.print(List.of(orderOnly, batchFetch));
@@ -89,32 +89,5 @@ class BatchFetchTest {
 
     private List<Order> findOrders() {
         return entityManager.createQuery(ORDER_QUERY, Order.class).getResultList();
-    }
-
-    private void resetTracking(Statistics statistics) {
-        statistics.clear();
-        SqlQueryTracker.clear();
-    }
-
-    private QueryMeasurement snapshot(
-        String strategy,
-        int resultCount,
-        Statistics statistics,
-        long startedAt
-    ) {
-        return new QueryMeasurement(
-            strategy,
-            resultCount,
-            statistics.getQueryExecutionCount(),
-            System.nanoTime() - startedAt,
-            SqlQueryTracker.snapshot()
-        );
-    }
-
-    private long countSql(List<String> sqlStatements, String fragment) {
-        return sqlStatements.stream()
-            .map(String::toLowerCase)
-            .filter(sql -> sql.contains(fragment))
-            .count();
     }
 }
