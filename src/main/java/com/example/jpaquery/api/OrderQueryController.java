@@ -28,6 +28,8 @@ public class OrderQueryController {
 
     @GetMapping("/projection")
     public List<OrderSummaryResponse> findOrderSummaries() {
-        return orderQueryService.findOrderSummaries();
+        return orderQueryService.findOrderSummaries().stream()
+            .map(OrderSummaryResponse::from)
+            .toList();
     }
 }

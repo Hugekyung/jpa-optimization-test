@@ -4,6 +4,7 @@ import com.example.jpaquery.api.dto.OrderFetchJoinResponse;
 import com.example.jpaquery.api.dto.OrderSummaryResponse;
 import com.example.jpaquery.domain.Order;
 import com.example.jpaquery.repository.OrderRepository;
+import com.example.jpaquery.repository.projection.OrderSummaryProjection;
 import com.example.jpaquery.support.QueryComparisonTable;
 import com.example.jpaquery.support.QueryMeasurement;
 import com.example.jpaquery.support.QueryTrackingSupport;
@@ -79,24 +80,26 @@ class ProjectionTest {
         // When: 같은 조건으로 필요한 컬럼만 DTO Projection으로 조회한다.
         QueryTrackingSupport.resetTracking(statistics);
         long projectionStartedAt = System.nanoTime();
-        List<OrderSummaryResponse> projectionResponses = orderRepository.findOrderSummaries();
+        List<OrderSummaryProjection> projections = orderRepository.findOrderSummaries();
         QueryMeasurement projection = QueryTrackingSupport.snapshot(
             "DTO Projection",
-            projectionResponses.size(),
+            projections.size(),
             statistics,
             projectionStartedAt
         );
 
         // Then: Constructor Expression은 Entity를 만들지 않고 선택한 컬럼만 반환해야 한다.
         // Result (assert): 응답 데이터가 같고 불필요한 created_at 컬럼이 빠지는지 확인한다.
-        assertEquals(100, projectionResponses.size());
+        assertEquals(100, projections.size());
         assertEquals(
             entityResponses.stream()
                 .map(response -> new OrderSummaryResponse(
                     response.orderId(), response.userName(), response.status()
                 ))
                 .toList(),
-            projectionResponses
+            projections.stream()
+                .map(OrderSummaryResponse::from)
+                .toList()
         );
         assertEquals(1, projection.sqlStatements().size());
         assertFalse(projection.sqlSummary().contains("created_at"));
