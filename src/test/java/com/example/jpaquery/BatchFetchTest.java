@@ -8,6 +8,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnit;
 import org.hibernate.SessionFactory;
+import org.hibernate.Session;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ class BatchFetchTest {
     @Test
     @DisplayName("LAZY 연관관계 접근 시 여러 SELECT를 IN 쿼리로 묶는다")
     void batchesLazyAssociationQueries() {
+        entityManager.unwrap(Session.class).setFetchBatchSize(10);
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
 
         // When: 동일 조건으로 Order 목록만 조회한다.
