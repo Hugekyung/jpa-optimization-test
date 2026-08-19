@@ -28,10 +28,10 @@
 
 ### 2. 테스트 데이터 생성
 
-- [ ] 애플리케이션 시작 시 User 10명 생성
-- [ ] User마다 Order 10개 생성
-- [ ] Order마다 OrderItem 5개 생성
-- [ ] 총 User 10개, Order 100개, OrderItem 500개 확인
+- [x] 애플리케이션 시작 시 User 10명 생성
+- [x] User마다 Order 10개 생성
+- [x] Order마다 OrderItem 5개 생성
+- [x] 총 User 10개, Order 100개, OrderItem 500개 확인
 
 ### 3. SQL 로그 설정
 
