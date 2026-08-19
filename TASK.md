@@ -49,9 +49,9 @@
 
 ### 4. LAZY Loading 확인
 
-- [ ] `GET /api/orders` 또는 동일한 테스트 코드로 Order 목록 조회
-- [ ] User와 OrderItem에 접근하지 않을 때 추가 SELECT가 발생하지 않는지 확인
-- [ ] 연관 Entity에 실제로 접근하는 시점을 확인
+- [x] `GET /api/orders` 또는 동일한 테스트 코드로 Order 목록 조회
+- [x] User와 OrderItem에 접근하지 않을 때 추가 SELECT가 발생하지 않는지 확인
+- [x] 연관 Entity에 실제로 접근하는 시점을 확인
 
 ### 5. N+1 문제 재현
 
