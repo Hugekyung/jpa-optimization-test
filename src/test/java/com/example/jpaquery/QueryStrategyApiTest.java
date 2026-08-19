@@ -1,5 +1,7 @@
 package com.example.jpaquery;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -32,10 +35,13 @@ class QueryStrategyApiTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     @DisplayName("네 가지 조회 전략 API가 동일한 주문 요약 응답을 반환한다")
     void returnsSameOrderSummaryFromEveryStrategy() throws Exception {
-        List<String> responses = STRATEGY_PATHS.stream()
+        List<List<Map<String, Object>>> responses = STRATEGY_PATHS.stream()
             .map(this::requestOrderSummaries)
             .toList();
 
@@ -45,7 +51,7 @@ class QueryStrategyApiTest {
         assertEquals(responses.get(0), responses.get(3));
     }
 
-    private String requestOrderSummaries(String path) {
+    private List<Map<String, Object>> requestOrderSummaries(String path) {
         try {
             MvcResult result = mockMvc.perform(get(path))
                 .andExpect(status().isOk())
@@ -54,7 +60,10 @@ class QueryStrategyApiTest {
                 .andExpect(jsonPath("$[0].userName").value("User 1"))
                 .andExpect(jsonPath("$[0].status").value("PENDING"))
                 .andReturn();
-            return result.getResponse().getContentAsString();
+            return objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                new TypeReference<>() { }
+            );
         } catch (Exception exception) {
             throw new IllegalStateException("조회 전략 API 요청에 실패했습니다: " + path, exception);
         }

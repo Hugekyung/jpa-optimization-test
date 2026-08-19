@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -54,7 +55,7 @@ public class OrderQueryService {
     }
 
     private List<Order> findOrdersWithAssociationAccess() {
-        List<Order> orders = orderRepository.findAll();
+        List<Order> orders = orderRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
         orders.forEach(order -> {
             order.getUser().getName();
             order.getItems().size();

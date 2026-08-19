@@ -1,6 +1,5 @@
 package com.example.jpaquery.api;
 
-import com.example.jpaquery.api.dto.OrderFetchJoinResponse;
 import com.example.jpaquery.api.dto.OrderSummaryResponse;
 import com.example.jpaquery.service.OrderQueryService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,9 +19,9 @@ public class OrderQueryController {
     }
 
     @GetMapping("/fetch-join")
-    public List<OrderFetchJoinResponse> findOrdersWithFetchJoin() {
+    public List<OrderSummaryResponse> findOrdersWithFetchJoin() {
         return orderQueryService.findOrdersWithUser().stream()
-            .map(OrderFetchJoinResponse::from)
+            .map(OrderSummaryResponse::from)
             .toList();
     }
 

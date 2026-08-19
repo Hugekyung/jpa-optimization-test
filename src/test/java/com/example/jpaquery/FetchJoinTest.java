@@ -1,6 +1,6 @@
 package com.example.jpaquery;
 
-import com.example.jpaquery.api.dto.OrderFetchJoinResponse;
+import com.example.jpaquery.api.dto.OrderSummaryResponse;
 import com.example.jpaquery.domain.Order;
 import com.example.jpaquery.domain.OrderStatus;
 import com.example.jpaquery.domain.User;
@@ -62,10 +62,10 @@ class FetchJoinTest {
         // When: 동일 조건으로 Order를 조회하고 User 이름에 접근한다.
         QueryTrackingSupport.resetTracking(statistics);
         long lazyStartedAt = System.nanoTime();
-        List<OrderFetchJoinResponse> lazyResponses = entityManager.createQuery(
+        List<OrderSummaryResponse> lazyResponses = entityManager.createQuery(
                 ORDER_QUERY, Order.class
             ).getResultList().stream()
-            .map(OrderFetchJoinResponse::from)
+            .map(OrderSummaryResponse::from)
             .toList();
         QueryMeasurement lazy = QueryTrackingSupport.snapshot("Lazy + User 접근", lazyResponses.size(), statistics, lazyStartedAt);
 
@@ -80,8 +80,8 @@ class FetchJoinTest {
         // When: 같은 조건으로 User Fetch Join 조회 후 같은 응답을 만든다.
         QueryTrackingSupport.resetTracking(statistics);
         long fetchJoinStartedAt = System.nanoTime();
-        List<OrderFetchJoinResponse> fetchJoinResponses = orderRepository.findAllWithUser().stream()
-            .map(OrderFetchJoinResponse::from)
+        List<OrderSummaryResponse> fetchJoinResponses = orderRepository.findAllWithUser().stream()
+            .map(OrderSummaryResponse::from)
             .toList();
         QueryMeasurement fetchJoin = QueryTrackingSupport.snapshot(
             "User Fetch Join",

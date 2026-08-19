@@ -1,6 +1,5 @@
 package com.example.jpaquery;
 
-import com.example.jpaquery.api.dto.OrderFetchJoinResponse;
 import com.example.jpaquery.api.dto.OrderSummaryResponse;
 import com.example.jpaquery.domain.Order;
 import com.example.jpaquery.repository.OrderRepository;
@@ -57,10 +56,10 @@ class ProjectionTest {
         // When: Order와 User Entity를 Fetch Join으로 조회해 응답을 만든다.
         QueryTrackingSupport.resetTracking(statistics);
         long entityStartedAt = System.nanoTime();
-        List<OrderFetchJoinResponse> entityResponses = entityManager.createQuery(
+        List<OrderSummaryResponse> entityResponses = entityManager.createQuery(
                 "select o from Order o join fetch o.user order by o.id", Order.class
             ).getResultList().stream()
-            .map(OrderFetchJoinResponse::from)
+            .map(OrderSummaryResponse::from)
             .toList();
         QueryMeasurement entityQuery = QueryTrackingSupport.snapshot(
             "Entity Fetch Join",
