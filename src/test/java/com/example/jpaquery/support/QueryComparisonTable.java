@@ -9,14 +9,15 @@ public final class QueryComparisonTable {
 
     public static void print(List<QueryMeasurement> measurements) {
         System.out.println("\n[Query Comparison]");
-        System.out.println("| 방식 | 결과 건수 | Query 횟수 | SQL 횟수 | JOIN | IN (...) |");
-        System.out.println("|---|---:|---:|---:|:---:|:---:|");
+        System.out.println("| 방식 | 결과 건수 | Query 횟수 | SQL 횟수 | 실행 시간(ns) | JOIN | IN (...) |");
+        System.out.println("|---|---:|---:|---:|---:|:---:|:---:|");
         measurements.forEach(measurement -> System.out.printf(
-            "| %s | %d | %d | %d | %s | %s |%n",
+            "| %s | %d | %d | %d | %d | %s | %s |%n",
             measurement.strategy(),
             measurement.resultCount(),
             measurement.queryCount(),
             measurement.sqlStatements().size(),
+            measurement.elapsedNanos(),
             measurement.containsJoin() ? "Y" : "N",
             measurement.containsInClause() ? "Y" : "N"
         ));
@@ -29,4 +30,3 @@ public final class QueryComparisonTable {
         ));
     }
 }
-
