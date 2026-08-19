@@ -5,6 +5,9 @@ import com.example.jpaquery.service.OrderQueryService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 
@@ -16,6 +19,16 @@ public class OrderQueryController {
 
     public OrderQueryController(OrderQueryService orderQueryService) {
         this.orderQueryService = orderQueryService;
+    }
+
+    @GetMapping
+    public Page<OrderSummaryResponse> findPage(Pageable pageable) {
+        return orderQueryService.findPage(pageable);
+    }
+
+    @GetMapping("/slice")
+    public Slice<OrderSummaryResponse> findSlice(Pageable pageable) {
+        return orderQueryService.findSlice(pageable);
     }
 
     @GetMapping("/fetch-join")

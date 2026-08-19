@@ -1,5 +1,6 @@
 package com.example.jpaquery.service;
 
+import com.example.jpaquery.api.dto.OrderSummaryResponse;
 import com.example.jpaquery.domain.Order;
 import com.example.jpaquery.repository.OrderRepository;
 import com.example.jpaquery.repository.projection.OrderSummaryProjection;
@@ -8,6 +9,9 @@ import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 
@@ -48,6 +52,40 @@ public class OrderQueryService {
     public List<OrderSummaryProjection> findOrderSummaries() {
         setFetchBatchSize(10);
         return orderRepository.findOrderSummaries();
+    }
+
+    public Page<OrderSummaryResponse> findPage(Pageable pageable) {
+        setFetchBatchSize(0);
+        return orderRepository.findAll(pageable).map(OrderSummaryResponse::from);
+    }
+
+    public Slice<OrderSummaryResponse> findSlice(Pageable pageable) {
+        setFetchBatchSize(0);
+        return orderRepository.findOrderSummarySlice(pageable)
+            .map(OrderSummaryResponse::from);
+    }
+
+    public Page<OrderSummaryResponse> findPageWithUser(Pageable pageable) {
+        setFetchBatchSize(0);
+        return orderRepository.findPageWithUser(pageable).map(OrderSummaryResponse::from);
+    }
+
+    public List<OrderSummaryResponse> findPageWithItems(Pageable pageable) {
+        setFetchBatchSize(0);
+        return orderRepository.findPageWithItems(pageable).stream()
+            .map(OrderSummaryResponse::from)
+            .toList();
+    }
+
+    public Page<OrderSummaryResponse> findPageWithBatchFetch(Pageable pageable) {
+        setFetchBatchSize(10);
+        return orderRepository.findAll(pageable).map(OrderSummaryResponse::from);
+    }
+
+    public Page<OrderSummaryResponse> findPageWithProjection(Pageable pageable) {
+        setFetchBatchSize(10);
+        return orderRepository.findOrderSummaryPage(pageable)
+            .map(OrderSummaryResponse::from);
     }
 
     private void setFetchBatchSize(int batchSize) {
