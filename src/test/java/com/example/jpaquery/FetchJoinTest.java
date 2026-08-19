@@ -1,13 +1,13 @@
 package com.example.jpaquery;
 
 import com.example.jpaquery.api.dto.OrderFetchJoinResponse;
-import com.example.jpaquery.config.SqlQueryTracker;
 import com.example.jpaquery.domain.Order;
 import com.example.jpaquery.domain.OrderStatus;
 import com.example.jpaquery.domain.User;
 import com.example.jpaquery.repository.OrderRepository;
 import com.example.jpaquery.support.QueryComparisonTable;
 import com.example.jpaquery.support.QueryMeasurement;
+import com.example.jpaquery.support.QueryTrackingSupport;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnit;
@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestPropertySource(properties = "spring.jpa.properties.hibernate.default_batch_fetch_size=0")
 @Transactional
 @DisplayName("JPA Fetch Join 동작 검증")
 class FetchJoinTest {
@@ -58,30 +60,30 @@ class FetchJoinTest {
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
 
         // When: 동일 조건으로 Order를 조회하고 User 이름에 접근한다.
-        resetTracking(statistics);
+        QueryTrackingSupport.resetTracking(statistics);
         long lazyStartedAt = System.nanoTime();
         List<OrderFetchJoinResponse> lazyResponses = entityManager.createQuery(
                 ORDER_QUERY, Order.class
             ).getResultList().stream()
             .map(OrderFetchJoinResponse::from)
             .toList();
-        QueryMeasurement lazy = snapshot("Lazy + User 접근", lazyResponses.size(), statistics, lazyStartedAt);
+        QueryMeasurement lazy = QueryTrackingSupport.snapshot("Lazy + User 접근", lazyResponses.size(), statistics, lazyStartedAt);
 
         // Then: Lazy 방식은 User 접근 때 추가 SELECT를 발생시켜야 한다.
         // Result (assert): 기준 응답과 SQL 11회를 확인한다.
         assertEquals(100, lazyResponses.size());
         assertEquals(11, lazy.sqlStatements().size());
-        assertEquals(10, countSql(lazy.sqlStatements(), "from users"));
+        assertEquals(10, QueryTrackingSupport.countSql(lazy.sqlStatements(), "from users"));
 
         entityManager.clear();
 
         // When: 같은 조건으로 User Fetch Join 조회 후 같은 응답을 만든다.
-        resetTracking(statistics);
+        QueryTrackingSupport.resetTracking(statistics);
         long fetchJoinStartedAt = System.nanoTime();
         List<OrderFetchJoinResponse> fetchJoinResponses = orderRepository.findAllWithUser().stream()
             .map(OrderFetchJoinResponse::from)
             .toList();
-        QueryMeasurement fetchJoin = snapshot(
+        QueryMeasurement fetchJoin = QueryTrackingSupport.snapshot(
             "User Fetch Join",
             fetchJoinResponses.size(),
             statistics,
@@ -93,7 +95,7 @@ class FetchJoinTest {
         assertEquals(lazyResponses, fetchJoinResponses);
         assertEquals(1, fetchJoin.sqlStatements().size());
         assertTrue(fetchJoin.containsJoin());
-        assertEquals(0, countSql(fetchJoin.sqlStatements(), "from order_items"));
+        assertEquals(0, QueryTrackingSupport.countSql(fetchJoin.sqlStatements(), "from order_items"));
 
         QueryComparisonTable.print(List.of(lazy, fetchJoin));
     }
@@ -105,13 +107,13 @@ class FetchJoinTest {
         PersistenceUnitUtil persistenceUnitUtil = entityManagerFactory.getPersistenceUnitUtil();
 
         // When: Order와 OrderItem을 Collection Fetch Join으로 조회한다.
-        resetTracking(statistics);
+        QueryTrackingSupport.resetTracking(statistics);
         long startedAt = System.nanoTime();
         List<Order> orders = orderRepository.findAllWithItems();
         int totalItemCount = orders.stream()
             .mapToInt(order -> order.getItems().size())
             .sum();
-        QueryMeasurement collectionFetchJoin = snapshot(
+        QueryMeasurement collectionFetchJoin = QueryTrackingSupport.snapshot(
             "Collection Fetch Join",
             orders.size(),
             statistics,
@@ -164,30 +166,4 @@ class FetchJoinTest {
             .andExpect(jsonPath("$[0].status").value("PENDING"));
     }
 
-    private void resetTracking(Statistics statistics) {
-        statistics.clear();
-        SqlQueryTracker.clear();
-    }
-
-    private QueryMeasurement snapshot(
-        String strategy,
-        int resultCount,
-        Statistics statistics,
-        long startedAt
-    ) {
-        return new QueryMeasurement(
-            strategy,
-            resultCount,
-            statistics.getQueryExecutionCount(),
-            System.nanoTime() - startedAt,
-            SqlQueryTracker.snapshot()
-        );
-    }
-
-    private long countSql(List<String> sqlStatements, String fragment) {
-        return sqlStatements.stream()
-            .map(String::toLowerCase)
-            .filter(sql -> sql.contains(fragment))
-            .count();
-    }
 }

@@ -73,10 +73,12 @@
 
 ### 7. Batch Fetch 적용
 
-- [ ] Hibernate `default_batch_fetch_size` 설정
-- [ ] 기존 LAZY 접근 코드를 유지한 채 SQL 변화 확인
-- [ ] 여러 개의 SELECT가 `IN (...)` 쿼리로 묶이는지 확인
-- [ ] Fetch Join과 Batch Fetch의 SQL 차이와 선택 기준 기록
+- [x] Hibernate `default_batch_fetch_size` 설정
+- [x] 기존 LAZY 접근 코드를 유지한 채 SQL 변화 확인
+- [x] 여러 개의 SELECT가 `IN (...)` 쿼리로 묶이는지 확인
+- [x] Fetch Join과 Batch Fetch의 SQL 차이와 선택 기준 기록
+
+> `default_batch_fetch_size: 10` 설정 후 동일한 Order 100건과 User, OrderItem 전체 접근 조건에서 SQL이 111회에서 12회로 줄고, 연관관계 조회가 `IN (...)` 쿼리로 묶였다. Fetch Join은 한 번의 JOIN으로 즉시 조회하지만 조회 경로와 Pagination 제약이 있고, Batch Fetch는 LAZY 구조를 유지하면서 여러 SELECT를 묶으므로 화면별 연관관계 접근이 선택적인 경우에 적합하다.
 
 ### 8. DTO Projection 적용
 
