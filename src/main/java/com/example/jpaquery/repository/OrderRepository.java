@@ -1,5 +1,6 @@
 package com.example.jpaquery.repository;
 
+import com.example.jpaquery.api.dto.OrderSummaryResponse;
 import com.example.jpaquery.domain.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,4 +14,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("select distinct o from Order o left join fetch o.items order by o.id")
     List<Order> findAllWithItems();
+
+    @Query("""
+        select new com.example.jpaquery.api.dto.OrderSummaryResponse(o.id, u.name, o.status)
+        from Order o
+        join o.user u
+        order by o.id
+        """)
+    List<OrderSummaryResponse> findOrderSummaries();
 }

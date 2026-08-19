@@ -1,6 +1,7 @@
 package com.example.jpaquery.api;
 
 import com.example.jpaquery.api.dto.OrderFetchJoinResponse;
+import com.example.jpaquery.api.dto.OrderSummaryResponse;
 import com.example.jpaquery.service.OrderQueryService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,5 +25,9 @@ public class OrderQueryController {
             .map(OrderFetchJoinResponse::from)
             .toList();
     }
-}
 
+    @GetMapping("/projection")
+    public List<OrderSummaryResponse> findOrderSummaries() {
+        return orderQueryService.findOrderSummaries();
+    }
+}
