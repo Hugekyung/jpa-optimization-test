@@ -74,3 +74,34 @@ DTO Projection
 - Collection과 Pagination 제약을 피하면서 LAZY를 유지하려면 Batch Fetch 고려
 - 조회 전용 응답이고 필요한 컬럼이 제한적이면 DTO Projection 고려
 - 연관관계 접근이 반복되면 기본 LAZY 조회에서 N+1이 발생할 수 있으므로 SQL 로그로 확인
+
+## Pagination 선택 과제
+
+### API
+
+- `GET /api/orders?page=0&size=20`: `Page` 기반 기본 LAZY 조회
+- `GET /api/orders/slice?page=0&size=20`: `Slice` 기반 DTO Projection 조회
+
+### 첫 페이지 20건 조회 비교
+
+`PaginationTest`에서 동일한 첫 페이지 조건(`id ASC`, `page=0`, `size=20`)으로 결과와 SQL을 비교했습니다.
+
+| 방식 | 결과 건수 | SQL 횟수 | Count Query | SQL 특징 | 주의점 |
+|---|---:|---:|:---:|---|---|
+| LAZY | 20 | 4 | O | Order 조회 + User 2회 | 페이지 안의 User 수만큼 추가 SELECT |
+| To-One Fetch Join | 20 | 2 | O | Order와 User JOIN | To-One 관계에서는 Page와 함께 사용 가능 |
+| Collection Fetch Join | 20 | 3 | X | Collection 전체 Row 조회 후 메모리 페이징 | `limit` 없이 전체 Collection을 읽을 수 있음 |
+| Batch Fetch | 20 | 3 | O | 페이지 Order 조회 + User `IN` | 연관관계 추가 조회는 남음 |
+| DTO Projection | 20 | 2 | O | 필요한 컬럼만 조회 | Entity 상태 변경에는 사용할 수 없음 |
+
+### Page와 Slice
+
+```text
+Page  = content 조회 + 전체 Count Query
+        전체 페이지 수, totalElements 제공
+
+Slice = 다음 페이지 존재 확인을 위한 content 조회
+        Count Query 없음, totalElements 미제공
+```
+
+Collection Fetch Join에 Pagination을 함께 적용하면 DB가 20개의 Order만 자르는 대신 Collection Join 결과 전체를 읽고 애플리케이션 메모리에서 페이징할 수 있습니다. Pagination이 필요한 Collection 조회는 Batch Fetch 또는 `Order ID`를 먼저 페이지 조회한 뒤 Collection을 별도로 조회하는 방식을 우선 고려합니다.

@@ -109,10 +109,10 @@
 
 ## 선택 과제
 
-- [ ] Pagination 적용: `GET /api/orders?page=0&size=20`
-- [ ] 기본 LAZY, Collection Fetch Join, Batch Fetch, DTO Projection 비교
-- [ ] Fetch Join과 Pagination의 문제 확인
-- [ ] `Page`와 `Slice`의 차이 및 Count Query 발생 여부 확인
+- [x] Pagination 적용: `GET /api/orders?page=0&size=20`
+- [x] 기본 LAZY, Collection Fetch Join, Batch Fetch, DTO Projection 비교
+- [x] Fetch Join과 Pagination의 문제 확인
+- [x] `Page`와 `Slice`의 차이 및 Count Query 발생 여부 확인
 - [ ] 동일 트랜잭션에서 같은 Entity를 다시 조회해 1차 캐시 동작 확인
 - [ ] Hibernate Statistics, datasource-proxy 또는 P6Spy로 쿼리 수 자동 검증
 
